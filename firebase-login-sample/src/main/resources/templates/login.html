@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Firebase login</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script>
+const config = {
+    apiKey: "[[${apiKey}]]",
+    projectId: "[[${projectId}]]",
+};
+try {
+    firebase.initializeApp(config);
+} catch(e) {
+    alert(e.message);
+}
+
+let loginButtonClicked = false;
+firebase.auth().onAuthStateChanged(async (user) => {
+    if (user) {
+        const token = await firebase.auth().currentUser.getIdToken(true);
+
+        if (loginButtonClicked) {
+            document.querySelector('#msg').textContent = '"' + user.email + '"" logged in';
+            document.getElementById('formUsername').value = user.email;
+            document.getElementById('formPassword').value = token;
+            document.getElementById('sendToken').submit();
+        }
+    }
+});
+
+
+function login(){
+    loginButtonClicked = true;
+    let email = document.querySelector('#email').value;
+    let password = document.querySelector('#password').value;
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((result) => {
+            console.log('sign in successfully.');
+        }).catch((error) => {
+            document.querySelector('#msg').textContent = error.message;
+        });
+}
+
+function logout(){
+    firebase.auth().signOut();
+    document.getElementById('msg').textContent = 'logged out';
+}
+</script>
+</head>
+<body>
+<h1>Firebase login</h1>
+<p id="msg">Please login</p>
+<table>
+    <tr><th>Email</th>
+        <td><input type="email" id="email"></td></tr>
+    <tr><th>Password</th>
+        <td><input type="password" id="password"></td></tr>
+    <tr><th></th><td>
+        <button onclick="login();">Login</button>
+        <button onclick="logout();">Logout</button>
+        </th></tr>
+</table>
+<form th:action="@{/login}" method="post" id="sendToken">
+    <input type="hidden" name="username" id="formUsername">
+    <input type="hidden" name="password" id="formPassword">
+</form>
+</body>
+</html>
